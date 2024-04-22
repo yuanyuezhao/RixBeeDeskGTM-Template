@@ -72,6 +72,10 @@ ___TEMPLATE_PARAMETERS___
       {
         "value": "complete_checkout",
         "displayValue": "Complete Checkout"
+      },
+      {
+        "value": "pageview",
+        "displayValue": "Page View"
       }
     ],
     "simpleValueType": true,
@@ -86,49 +90,36 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_WEB_TEMPLATE___
 
-// 在此输入您的模板代码。
 const log = require('logToConsole');
 const injectScript = require('injectScript');
 const copyFromWindow = require('copyFromWindow');
-const getType = require('getType');
 const encodeUri = require('encodeUri');
 
-const convensionType = data.convensionType;
-const accountId = data.accountId;
-const url = 'https://crs.rixbeedesk.com/wrapper/' + encodeUri(accountId) + '.js';
-injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, url);
+
+const conversionType = data.conversionType;
+const url = 'https://crs.rixbeedesk.com/wrapper/' + encodeUri(data.accountId) + '.js';
+injectScript(url, data.gtmOnsuccess, data.gtmOnFailure, url);
 
 
 const clicker = copyFromWindow('eleForClicker');
-if (clicker && convensionType) {
-  clicker.track(convensionType);
+const onSuccess = () => {
+  const clicker = copyFromWindow('eleForClicker');
+  log('callback loaded',conversionType,clicker);
+  if (clicker) {
+    clicker.track(conversionType);
+  }
+};
+if (!clicker) {
+  const cb_js = 'https://crs.rixbeedesk.com/callback.js';
+  injectScript(cb_js, onSuccess, data.gtmOnFailure, cb_js);
+} else if (clicker && data.conversionType !== 'pageview') {
+  clicker.track(conversionType);
 }
 
 
 ___WEB_PERMISSIONS___
 
 [
-  {
-    "instance": {
-      "key": {
-        "publicId": "logging",
-        "versionId": "1"
-      },
-      "param": [
-        {
-          "key": "environments",
-          "value": {
-            "type": 1,
-            "string": "debug"
-          }
-        }
-      ]
-    },
-    "clientAnnotations": {
-      "isEditedByUser": true
-    },
-    "isRequired": true
-  },
   {
     "instance": {
       "key": {
@@ -144,6 +135,10 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "https://crs.rixbeedesk.com/wrapper/*.js"
+              },
+              {
+                "type": 1,
+                "string": "https://crs.rixbeedesk.com/callback.js"
               }
             ]
           }
@@ -205,8 +200,146 @@ ___WEB_PERMISSIONS___
                     "boolean": true
                   }
                 ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "_rix_listener"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "convensionType"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "accountId"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
               }
             ]
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "logging",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "environments",
+          "value": {
+            "type": 1,
+            "string": "debug"
           }
         }
       ]
@@ -221,11 +354,22 @@ ___WEB_PERMISSIONS___
 
 ___TESTS___
 
-scenarios: []
+scenarios:
+- name: Untitled test 1
+  code: |-
+    const mockData = {
+      // Mocked field values
+    };
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    // Verify that the tag finished successfully.
+    assertApi('gtmOnSuccess').wasCalled();
 
 
 ___NOTES___
 
-Created on 2024/3/28 17:08:51
+Created on 2024/4/22 17:57:25
 
 
